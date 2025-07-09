@@ -1,12 +1,9 @@
 from gpiozero import ButtonBoard, LEDBoard
-from button import Button
 from typing import List
 import random
 from time import sleep
 
 class ButtonPad():
-
-    buttons: List[List[Button]] = [[None for _ in range(4)] for _ in range(4)]
 
     def __init__(self):
 
@@ -39,39 +36,6 @@ class ButtonPad():
         self.led_col2 = 'BOARD18'
         self.led_col3 = 'BOARD12'
         self.led_col4 = 'BOARD8'
-
-        self.button1 = False
-        self.btn1_idx = (0,0)
-        self.button2 = False
-        self.btn2_idx = (0,1)
-        self.button3 = False
-        self.btn3_idx = (0,2)
-        self.button4 = False
-        self.btn4_idx = (0,3)
-        self.button5 = False
-        self.btn5_idx = (1,0)
-        self.button6 = False
-        self.btn6_idx = (1,1)
-        self.button7 = False
-        self.btn7_idx = (1,2)
-        self.button8 = False
-        self.btn8_idx = (1,3)
-        self.button9 = False
-        self.btn9_idx = (2,0)
-        self.button10 = False
-        self.btn10_idx = (2,1)
-        self.button11 = False
-        self.btn11_idx = (2,2)
-        self.button12 = False
-        self.btn12_idx = (2,3)
-        self.button13 = False
-        self.btn13_idx = (3,0)
-        self.button14 = False
-        self.btn14_idx = (3,1)
-        self.button15 = False
-        self.btn15_idx = (3,2)
-        self.button16 = False
-        self.btn16_idx = (3,3)
         
         self.row_inputs = ButtonBoard(self.row4, self.row3, self.row2, self.row1, pull_up=True, bounce_time=0.02)
         self.col_outputs = LEDBoard(self.col1, self.col2, self.col3, self.col4, active_high=False)
@@ -86,15 +50,6 @@ class ButtonPad():
             self.blue_leds.off(idx)
             self.green_leds.off(idx)
             self.led_cols.off(idx)
-
-        # Button number mapping:
-        # 1  2  3  4
-        # 5  6  7  8
-        # 9 10 11 12
-        self.button_mapping = [(0,0), (0,1), (0,2), (0,3),
-                               (1,0), (1,1), (1,2), (1,3), 
-                               (2,0), (2,1), (2,2), (2,3), 
-                               (3,0), (3,1), (3,2), (3,3)]
 
         self.button_state = [[False for _ in range(4)] for _ in range(4)]
         self.last_button_state = self.button_state
