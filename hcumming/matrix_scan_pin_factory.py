@@ -1,6 +1,6 @@
 from gpiozero.pins import data
 from gpiozero import Factory, BoardInfo, HeaderInfo, PinInfo, Pin
-from gpiozero import PinInvalidPin, PinInvalidState, PinSetInput, PinInvalidPull, PinPWMFixedValue
+from gpiozero import PinInvalidPin, PinInvalidState, PinSetInput, PinInvalidPull, PinPWMFixedValue, PinInvalidBounce
 from gpiozero.compat import frozendict
 from queue import Queue, Empty
 from time import monotonic
@@ -12,18 +12,16 @@ from weakref import ref, WeakMethod
 
 class MatrixScanPinFactory(Factory):
 
-    def __init__(self, matrix_scan):
+    def __init__(self):
         super().__init__()
         self._info = None
         self.pins = {}
         self.pin_class = MatrixScanPin
-        # Factory will hold a reference to the matrix scan factory
-        # MUST be configured outside and passed into the MatrixScanPinFactory object
-        if not isinstance(matrix_scan, MatrixScan):
-            raise NotMatrixScanError(f'matrix_scan is not a MatrixScan object')
-        else:
-            self.matrix_scan = matrix_scan
-            # self.matrix_scan.start()
+        scan_delay = 0.001
+        self.matrix_scan = MatrixScan(scan_delay)
+        self.matrix_scan.start_scan_matrix()
+        self.matrix_scan.start()
+        self.matrix_scan.update_scan_delay(scan_delay)
         
     def ticks(self):
         # ToDo: Consider changing
@@ -44,10 +42,9 @@ class MatrixScanPinFactory(Factory):
             pin.close()
         self.pins.clear()
         self.matrix_scan.release_scan_matrix()
+        self.matrix_scan.stop()
 
     def pin(self, name):
-        # header: HeaderInfo
-        # info: PinInfo
         for header, info in self.board_info.find_pin(name):
             try:
                 pin = self.pins[info]
@@ -60,13 +57,6 @@ class MatrixScanPinFactory(Factory):
         raise PinInvalidPin(f'{name} is not a valid pin name')
 
 class MatrixScanPin(Pin):
-
-    # Arbitrary - based on LGPIO conventions
-    GPIO_EDGES = {
-        'both':3,
-        'rising': 1,
-        'falling': 2
-        }
     
     def __init__(self, factory, info):
         super().__init__()
@@ -84,7 +74,6 @@ class MatrixScanPin(Pin):
         self._pwm = None
         self._frequency = None
         self._duty_cycle = None
-
         
     @property
     def info(self):
@@ -141,14 +130,13 @@ class MatrixScanPin(Pin):
         else:
             pass
 
+    # Dummy method, doesn't do anything
     def _get_bounce(self):
-        return self.factory.matrix_scan.bounce_time
+        return self._bounce
 
+    # Dummy method, doesn't do anything
     def _set_bounce(self, value):
-        f = self.when_changed
-        self.when_changed = None
-        self.factory.matrix_scan.update_bounce_time(value)
-        self.when_changed = f
+        self._bounce = value
 
     def _get_edges(self):
         return self._edges
@@ -160,7 +148,6 @@ class MatrixScanPin(Pin):
         self.factory.matrix_scan.set_button_edge_trig(self._number, value)
         self.when_changed = f
         
-    # Copied from PiPin class, not sure if this is correct
     def _call_when_changed(self, ticks=None, state=None):
         method = self._when_changed()
         if method is None:
@@ -173,11 +160,9 @@ class MatrixScanPin(Pin):
             method(ticks, state)
 
     def _get_when_changed(self):
-        # print('DEBUG: In _get_when_changed')
         return None if self._when_changed is None else self._when_changed()
 
     def _set_when_changed(self, value):
-        # print('DEBUG: In _set_when_changed')
         with self._when_changed_lock:
             if value is None:
                 if self._when_changed is not None:
@@ -194,16 +179,16 @@ class MatrixScanPin(Pin):
 
     
     def _enable_event_detect(self):
-        # print('DEBUG: enable_event_detect')
         self.factory.matrix_scan.watch_button(self._number, self._edges)
 
 
     def _disable_event_detect(self):
-        # print('DEBUG: disable_event_detect')
         self.factory.matrix_scan.unwatch_button(self._number)
-        
-        
-        
+
+    def close(self):
+        self._disable_event_detect()
+        self.factory.matrix_scan.disable_button(self._number)
+        self.factory.matrix_scan.clear_callback(self._number)
 
 class MatrixScanBoardInfo(BoardInfo):
     __slots__ = () # workaround python issue #24931
@@ -248,15 +233,6 @@ class MatrixScanBoardInfo(BoardInfo):
                 pin_idx += 1
                 pin_name = f'BTN{pin_idx}'
                 header_data[pin_idx] = {'button': pin_name}
-                # pin_list.append({'button': pin_name})
-                
-        
-        # header_data = {
-        #     1: 1, 2: 2, 3: 3, 4: 4,
-        #     5: 5, 6: 6, 7: 7, 8: 8,
-        #     9: 9, 10: 10, 11: 11, 12: 12,
-        #     13: 13, 14: 14, 15: 15, 16: 16
-        # }
 
         headers = frozendict({
             header: HeaderInfo(

@@ -6,13 +6,11 @@ from collections import namedtuple
 import threading
 from gpiozero.threads import GPIOThread
 
-#class MatrixScan(threading.Thread):
 class MatrixScan(GPIOThread):
 
-    def __init__(self, bounce_time=0.02):
+    def __init__(self, scan_delay=0.001):
         super().__init__(target=self._run_scan_matrix)
-        # self.daemon = True # This may be wrong
-        self.daemon = False # This may be wrong
+        self.daemon = True
         self.row1 = 'BOARD40'
         self.row2 = 'BOARD33'
         self.row3 = 'BOARD21'
@@ -23,10 +21,9 @@ class MatrixScan(GPIOThread):
         self.col3 = 'BOARD16'
         self.col4 = 'BOARD10'
 
-        self.stop_pad = threading.Event()
-
-        self.bounce_time = bounce_time
+        self.scan_delay = scan_delay
         self.enable_scan = False
+        self.scan_count = 0
 
         self.button_map = {
             1: MatrixScanButton(row=0, col=0),
@@ -69,17 +66,11 @@ class MatrixScan(GPIOThread):
         self.pos_button_map = dict((v,k) for k,v in self.button_pos_map.items())
         
         # Button inputs are rows
-        self.row_inputs = ButtonBoard(self.row4, self.row3, self.row2, self.row1, pull_up=True, bounce_time=self.bounce_time)
+        self.row_inputs = ButtonBoard(self.row4, self.row3, self.row2, self.row1, pull_up=True)
         # Scan outputs are columns
         self.col_outputs = LEDBoard(self.col1, self.col2, self.col3, self.col4, active_high=False)
 
         self.disable_scan_columns()
-
-        #ToDo: Remove button_state and last_button_state
-        # self.button_state = [[False for _ in range(4)] for _ in range(4)]
-        # self.last_button_state = self.button_state
-
-        self.start()
 
     def lookup_button_number(self, row, col):
         return self.pos_button_map[(row, col)]
@@ -88,19 +79,19 @@ class MatrixScan(GPIOThread):
         return self.button_pos_map[button_num]
 
     def stop_scan_matrix(self):
-        self.stop_pad.set()
         self.enable_scan = False
+        sleep(0.1)
+        self.disable_scan_columns()
 
     def start_scan_matrix(self):
-        self.stop_pad.clear()
         self.enable_scan = True
     
     def _run_scan_matrix(self):
-        while not self.stop_pad.is_set():
+        while not self.stopping.is_set():
             self.scan_matrix()
                        
     def scan_matrix(self):
-        if self.enable_scan:
+        if self.enable_scan and not self.stopping.is_set(): 
             for key in self.button_map.keys():
                 self.button_map[key].last_state = self.button_map[key].state
             for col_idx, col in enumerate(self.col_outputs):
@@ -123,6 +114,7 @@ class MatrixScan(GPIOThread):
                         self.button_map[button_num].state = False
                 # Disable the scanning column
                 col.off()
+                sleep(self.scan_delay)
 
     def disable_scan_columns(self):
         # Turn off all the columns
@@ -140,21 +132,19 @@ class MatrixScan(GPIOThread):
         self.button_map[button_num].en = True
         
     def release_scan_matrix(self):
-        self.stop_scan_matrix
-        self.disable_scan_columns()
+        self.stop_scan_matrix()
         for button_num in self.button_map.keys():
             self.disable_button(button_num)
         self.row_inputs.close()
         self.col_outputs.close()
+        self.stop()
 
     def get_button_state(self, button_num):
         return self.button_map[button_num].state       
 
-    def update_bounce_time(self, bounce_time):
+    def update_scan_delay(self, scan_delay):
         self.stop_scan_matrix()
-        self.bounce_time = bounce_time
-        for row in self.row_inputs:
-            row.pin.bounce = bounce_time
+        self.scan_delay = scan_delay
         self.start_scan_matrix()
 
     def set_button_edge_trig(self, button_num, edge):
@@ -173,11 +163,13 @@ class MatrixScan(GPIOThread):
 
     def set_callback(self, button_num, callback):
         self.button_map[button_num].change_callback = callback
+
+    def clear_callback(self, button_num):
+        self.button_map[button_num].change_callback = None
         
     # Check if a watched edge occured
     def detect_edge(self, button_num, ticks):
         edge_found = self.identify_edge(self.button_map[button_num].state, self.button_map[button_num].last_state)
-        # print(f'DEBUG: edge: {edge_found}')
         self.button_map[button_num].det_edge = edge_found
         # If the edge is the desired edge, trigger the event and store the time
         if self.button_map[button_num].edge_trig == edge_found or self.button_map[button_num].edge_trig == 'both' and edge_found != None:
