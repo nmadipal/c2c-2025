@@ -5,7 +5,7 @@ from gpiozero.compat import frozendict
 from time import monotonic
 from threading import RLock, Thread
 from types import MethodType
-from matrix_led import MatrixLED
+from matrix_led import MatrixLED, ColorMap
 from weakref import ref, WeakMethod
 
 class MatrixLEDPinFactory(Factory):
@@ -59,22 +59,30 @@ class MatrixLEDPin(Pin):
     def __init__(self, factory, info):
         super().__init__()
         if 'RED' in info.name:
-            led_color = 'red'
+            # led_color = 'red'
+            led_color = ColorMap.red
+            led_color_str = 'red'
         elif 'BLUE' in info.name:
-            led_color = 'blue'
+            # led_color = 'blue'
+            led_color = ColorMap.blue
+            led_color_str = 'blue'
         elif 'GREEN' in info.name:
-            led_color = 'green'
+            # led_color = 'green'
+            led_color = ColorMap.green
+            led_color_str = 'green'
         else:
             raise PinInvalidPin(f'{info} is not a Matrix LED pin')
         self._factory = factory
         self._info = info
-        start_idx = len(led_color) + 4
+        start_idx = len(led_color_str) + 4
         self._number = int(info.name[start_idx:])
         self._pull = info.pull or 'floating'
         if led_color == None:
             raise MatrixLEDMissingColorError('LED Color missing')
         else:
             self._led_color = led_color
+            self._led_color_str = led_color_str
+            
 
     @property
     def info(self):

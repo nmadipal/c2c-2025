@@ -44,14 +44,16 @@ for button in range(button_count):
     matrix_button_board[button].when_held = light_when_held
     matrix_button_board[button].when_released = light_when_released
 
+# Poll for 1 minute
+time.sleep(60)
 
-input('Press <ENTER> to close the test')
+print(f'Median Scan Duration: {led_factory.matrix_led.median_scan_duration*1000} ms')
+print(f'Mean Scan Duration: {led_factory.matrix_led.mean_scan_duration*1000} ms')
+print(f'Max Scan Duration: {led_factory.matrix_led.max_scan_duration*1000} ms')
+print(f'Min Scan Duration: {led_factory.matrix_led.min_scan_duration*1000} ms')
+print(f'Scan Counts: {led_factory.matrix_led.scan_count}')
 
-# for led in rgb_leds:
-#     led.close()
 button_factory.close()
 matrix_button_board.close()
 led_factory.close()
 
-    
-    
