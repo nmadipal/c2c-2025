@@ -14,7 +14,7 @@ class ColorMap(Enum):
 
 class MatrixLED(GPIOThread):
     
-    def __init__(self, pwm_freq = 0, display_pause=0.01):
+    def __init__(self, pwm_freq = 0, display_pause=0.004):
         super().__init__(target=self._run_led_matrix)
         self.daemon = True
 

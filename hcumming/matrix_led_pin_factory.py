@@ -16,7 +16,7 @@ class MatrixLEDPinFactory(Factory):
         self.pins = {}
         self.pin_class = MatrixLEDPin
         pwm_freq = 10000
-        display_pause = 0.01
+        display_pause = 0.004
         self.matrix_led = MatrixLED(pwm_freq=pwm_freq, display_pause=display_pause)
         self.matrix_led.start_led_matrix()
         self.matrix_led.start()
