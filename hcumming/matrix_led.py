@@ -335,18 +335,21 @@ class MatrixRGB:
             update_ticks = True
         if update_ticks:
             self.change_ticks = True
-        if self.red_value:
-            self.red_led.on()
-        else:
-            self.red_led.off()
-        if self.green_value:
-            self.green_led.on()
-        else:
-            self.green_led.off()
-        if self.blue_value:
-            self.blue_led.on()
-        else:
-            self.blue_led.off()
+        self.red_led.value = self.red_value
+        self.green_led.value = self.green_value
+        self.blue_led.value = self.blue_value
+        # if self.red_value:
+        #     self.red_led.on()
+        # else:
+        #     self.red_led.off()
+        # if self.green_value:
+        #     self.green_led.on()
+        # else:
+        #     self.green_led.off()
+        # if self.blue_value:
+        #     self.blue_led.on()
+        # else:
+        #     self.blue_led.off()
                 
         
     

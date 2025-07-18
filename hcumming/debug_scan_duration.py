@@ -18,6 +18,10 @@ rgb_leds = []
 for idx in range(button_count):
     rgb_leds.append(RGBLED(f'RED {idx+1}', f'GREEN {idx+1}', f'BLUE {idx+1}', pin_factory=led_factory))
 
+# Update the button scan parameters
+scan_delay = 0.004 # 250 Hz
+button_factory.matrix_scan.update_scan_delay(scan_delay)
+    
 # Update the RGB scan parameters
 pwm_freq = 10000
 display_pause = 0.0001

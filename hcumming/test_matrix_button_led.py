@@ -17,10 +17,10 @@ matrix_button_board = ButtonBoard(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, pull_u
 rgb_leds = []
 for idx in range(button_count):
     rgb_leds.append(RGBLED(f'RED {idx+1}', f'GREEN {idx+1}', f'BLUE {idx+1}', pin_factory=led_factory))
-
+    
 # Update the RGB scan parameters
 pwm_freq = 10000
-display_pause = 0.0001
+display_pause = 0.0004
 led_factory.matrix_led.set_pwm_freq(pwm_freq)
 led_factory.matrix_led.update_display_pause(display_pause)
 
