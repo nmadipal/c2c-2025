@@ -2,10 +2,10 @@ from gpiozero import Button, ButtonBoard
 from matrix_scan import MatrixScan, MatrixScanButton
 from matrix_scan_pin_factory import MatrixScanPinFactory, MatrixScanPin, MatrixScanBoardInfo
 from signal import pause
+import time
 
-button_count = 16
-matrix_scan = MatrixScan()
-factory = MatrixScanPinFactory(matrix_scan)
+buttony_count = 16
+factory = MatrixScanPinFactory()
 matrix_board = ButtonBoard(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, pull_up=None, active_state=True, pin_factory=factory)
 
 # for button in range(16):
@@ -70,8 +70,6 @@ matrix_board[13].when_held = lambda: print('Button 14 Held')
 matrix_board[14].when_held = lambda: print('Button 15 Held')
 matrix_board[15].when_held = lambda: print('Button 16 Held')
 
-print('Press Ctrl-C to close the test')
-pause()
+input('Press <ENTER> to close the test')
 
-matrix_scan.stop_scan_matrix()
-matrix_board.close()
+factory.close()

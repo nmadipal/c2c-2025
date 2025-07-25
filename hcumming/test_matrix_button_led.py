@@ -17,6 +17,10 @@ matrix_button_board = ButtonBoard(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, pull_u
 rgb_leds = []
 for idx in range(button_count):
     rgb_leds.append(RGBLED(f'RED {idx+1}', f'GREEN {idx+1}', f'BLUE {idx+1}', pin_factory=led_factory))
+
+# Update the button scan parameters
+scan_delay = 0.004 # 250 Hz
+button_factory.matrix_scan.update_scan_delay(scan_delay)
     
 # Update the RGB scan parameters
 pwm_freq = 10000
@@ -29,6 +33,7 @@ led_factory.matrix_led.update_display_pause(display_pause)
 def light_when_pressed(button):
     button_idx = button.pin.info.number
     rgb_leds[button_idx-1].color = Color('green')
+    
 
 def light_when_held(button):
     button_idx = button.pin.info.number
@@ -39,6 +44,7 @@ def light_when_released(button):
     rgb_leds[button_idx-1].color = Color('blue')
 
 
+
 for button in range(button_count):
     matrix_button_board[button].when_pressed = light_when_pressed
     matrix_button_board[button].when_held = light_when_held
@@ -47,11 +53,9 @@ for button in range(button_count):
 
 input('Press <ENTER> to close the test')
 
-# for led in rgb_leds:
-#     led.close()
+
 button_factory.close()
 matrix_button_board.close()
 led_factory.close()
-
     
     
