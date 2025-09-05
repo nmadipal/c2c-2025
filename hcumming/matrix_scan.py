@@ -11,15 +11,15 @@ class MatrixScan(GPIOThread):
     def __init__(self, scan_delay=0.001):
         super().__init__(target=self._run_scan_matrix)
         self.daemon = True
-        self.row1 = 'BOARD40'
-        self.row2 = 'BOARD33'
-        self.row3 = 'BOARD21'
-        self.row4 = 'BOARD11'
+        self.row1 = 'BOARD38'
+        self.row2 = 'BOARD35'
+        self.row3 = 'BOARD40'
+        self.row4 = 'BOARD37'
 
-        self.col1 = 'BOARD26'
-        self.col2 = 'BOARD22'
-        self.col3 = 'BOARD16'
-        self.col4 = 'BOARD10'
+        self.col1 = 'BOARD7'
+        self.col2 = 'BOARD12'
+        self.col3 = 'BOARD11'
+        self.col4 = 'BOARD15'
 
         self.scan_delay = scan_delay
         self.enable_scan = False

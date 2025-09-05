@@ -20,34 +20,34 @@ class MatrixLED(GPIOThread):
 
         self.led_count = 16
         
-        self.red1 = 'BOARD38'
+        self.red1 = 'BOARD33'
         self.red2 = 'BOARD31'
-        self.red3 = 'BOARD19'
-        self.red4 = 'BOARD7'
+        self.red3 = 'BOARD24'
+        self.red4 = 'BOARD21'
 
-        self.blue1 = 'BOARD35'
-        self.blue2 = 'BOARD23'
-        self.blue3 = 'BOARD13'
-        self.blue4 = 'BOARD3'
+        self.blue1 = 'BOARD36' 
+        self.blue2 = 'BOARD26' 
+        self.blue3 = 'BOARD23' 
+        self.blue4 = 'BOARD18'
 
-        self.green1 = 'BOARD37'
-        self.green2 = 'BOARD29'
-        self.green3 = 'BOARD15'
-        self.green4 = 'BOARD5'
+        self.green1 = 'BOARD32' 
+        self.green2 = 'BOARD29' 
+        self.green3 = 'BOARD22' 
+        self.green4 = 'BOARD19'
         
-        self.led_col1 = 'BOARD24'
-        self.led_col2 = 'BOARD18'
-        self.led_col3 = 'BOARD12'
-        self.led_col4 = 'BOARD8'
+        self.led_col1 = 'BOARD10'
+        self.led_col2 = 'BOARD8'
+        self.led_col3 = 'BOARD16'
+        self.led_col4 = 'BOARD13'
 
         if pwm_freq is None or pwm_freq == 0:
             self.pwm = False
         else:
             self.pwm = True
-        self.red_leds = LEDBoard(self.red4, self.red3, self.red2, self.red1, active_high=True, pwm=self.pwm)
-        self.blue_leds = LEDBoard(self.blue4, self.blue3, self.blue2, self.blue1, active_high = True, pwm=self.pwm)
-        self.green_leds = LEDBoard(self.green4, self.green3, self.green2, self.green1, active_high = True, pwm=self.pwm)
-        self.led_cols = LEDBoard(self.led_col1, self.led_col2, self.led_col3, self.led_col4, active_high= False, pwm=False)
+        self.red_leds = LEDBoard(self.red4, self.red3, self.red2, self.red1, active_high=False, pwm=self.pwm)
+        self.blue_leds = LEDBoard(self.blue4, self.blue3, self.blue2, self.blue1, active_high=False, pwm=self.pwm)
+        self.green_leds = LEDBoard(self.green4, self.green3, self.green2, self.green1, active_high=False, pwm=self.pwm)
+        self.led_cols = LEDBoard(self.led_col1, self.led_col2, self.led_col3, self.led_col4, active_high=True)
 
         # Track scan time
         self.max_scan_duration = 0
@@ -115,21 +115,6 @@ class MatrixLED(GPIOThread):
             self.led_map[led].next_green_value = 0
             self.led_map[led].blue_value = 0
             self.led_map[led].next_blue_value = 0
-
-    # def disable_red_leds(self):
-    #     self.red_leds.off()
-    #     for led_num in self.red_led_map.keys():
-    #         self.red_led_map[led_num].next_state = 0
-
-    # def disable_blue_leds(self):
-    #     self.blue_leds.off()
-    #     for led_num in self.blue_led_map.keys():
-    #         self.blue_led_map[led_num].next_state = 0
-
-    # def disable_green_leds(self):
-    #     self.green_leds.off()
-    #     for led_num in self.green_led_map.keys():
-    #         self.green_led_map[led_num].next_state = 0
         
     def lookup_led_number(self, row, col):
         return self.pos_led_map[(row,col)]
@@ -164,34 +149,6 @@ class MatrixLED(GPIOThread):
         while self.enable_leds and not self.stopping.is_set():
             self.disp_led_matrix()            
             
-    # def _update_leds(self, led_number):
-    #     led_row, led_col = self.lookup_led_pos(led_number)
-    #     red_led = self.red_leds[led_row]
-    #     blue_led = self.blue_leds[led_row]
-    #     green_led = self.green_leds[led_row]
-    #     ticks = red_led.pin.factory.ticks()
-    #     if self.red_led_map[led_number].next_state != self.red_led_map[led_number].state:
-    #         self.red_led_map[led_number].change_ticks = ticks
-    #     if self.blue_led_map[led_number].next_state != self.blue_led_map[led_number].state:
-    #         self.blue_led_map[led_number].change_ticks = ticks
-    #     if self.green_led_map[led_number].next_state != self.green_led_map[led_number].state:
-    #         self.green_led_map[led_number].change_ticks = ticks
-    #     self.red_led_map[led_number].state = self.red_led_map[led_number].next_state
-    #     self.blue_led_map[led_number].state = self.blue_led_map[led_number].next_state
-    #     self.green_led_map[led_number].state = self.green_led_map[led_number].next_state
-    #     if self.red_led_map[led_number].state:
-    #         red_led.on()
-    #     else:
-    #         red_led.off()
-    #     if self.blue_led_map[led_number].state:
-    #         blue_led.on()
-    #     else:
-    #         blue_led.off()
-    #     if self.green_led_map[led_number].state:
-    #         green_led.on()
-    #     else:
-    #         green_led.off()
-
     def _turn_off_row(self, row_idx):
         self.red_leds[row_idx].off()
         self.blue_leds[row_idx].off()
@@ -199,23 +156,21 @@ class MatrixLED(GPIOThread):
                      
     def disp_led_matrix(self):
         if self.enable_leds and not self.stopping.is_set():
-            scan_start = monotonic()
+            # scan_start = monotonic()
             for col_idx, col in enumerate(self.led_cols):
                 for row_idx, _ in enumerate(self.red_leds):
                     led_num = self.lookup_led_number(row_idx, col_idx)
                     # Update the LED colors
                     self.led_map[led_num].update_led()
-                    # self._update_leds(led_num)
-                    # self._update_led_row(row_idx)
                 # Strobe the LED column
                 col.on()
                 sleep(self.display_pause)
-                col.off()
                 # Turn off the LEDs
                 for row_idx, _ in enumerate(self.red_leds):
                     self._turn_off_row(row_idx)
-            scan_stop = monotonic()
-            self.update_scan_duration(scan_start, scan_stop)
+                col.off()
+            # scan_stop = monotonic()
+            # self.update_scan_duration(scan_start, scan_stop)
 
     def disable_led(self, led_color, led_num):
         self.set_led_state(led_color, led_num, 0)
@@ -338,18 +293,6 @@ class MatrixRGB:
         self.red_led.value = self.red_value
         self.green_led.value = self.green_value
         self.blue_led.value = self.blue_value
-        # if self.red_value:
-        #     self.red_led.on()
-        # else:
-        #     self.red_led.off()
-        # if self.green_value:
-        #     self.green_led.on()
-        # else:
-        #     self.green_led.off()
-        # if self.blue_value:
-        #     self.blue_led.on()
-        # else:
-        #     self.blue_led.off()
                 
         
     

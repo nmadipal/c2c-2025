@@ -50,7 +50,6 @@ for button in range(button_count):
     matrix_button_board[button].when_held = light_when_held
     matrix_button_board[button].when_released = light_when_released
 
-
 input('Press <ENTER> to close the test')
 
 

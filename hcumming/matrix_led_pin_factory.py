@@ -129,6 +129,7 @@ class MatrixLEDPin(Pin):
 
     def _set_frequency(self, value):
         self.factory.matrix_led.set_pwm_freq(value)
+        
 
     def _get_frequency(self):
         return self.factory.matrix_led.get_pwm_freq(value)
